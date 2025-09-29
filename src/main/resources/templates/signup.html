@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Sign Up</title>
+    <style>
+        body { font-family: sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; }
+        .form-container { background-color: white; padding: 2em; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); width: 300px; }
+        .form-group { margin-bottom: 1em; }
+        label { display: block; margin-bottom: .5em; }
+        input[type='text'], input[type='password'] { width: 100%; padding: .5em; box-sizing: border-box; }
+        .checkbox-group { display: flex; align-items: center; }
+        .checkbox-group input { width: auto; margin-right: 10px; }
+        button { width: 100%; padding: .7em; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .alert-danger { padding: 1em; margin-bottom: 1em; border-radius: 5px; background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Create Account</h2>
+        <div th:if="${error}" class="alert alert-danger" th:text="${error}"></div>
+        <form th:action="@{/signup}" method="post">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" name="username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" required>
+            </div>
+            <div class="form-group checkbox-group">
+                <input type="checkbox" id="isAdmin" name="isAdmin" value="true">
+                <label for="isAdmin">Is Admin?</label>
+            </div>
+            <button type="submit">Sign Up</button>
+        </form>
+        <p style="text-align: center; margin-top: 1em;">Already have an account? <a th:href="@{/login}">Login here</a></p>
+    </div>
+</body>
+</html>

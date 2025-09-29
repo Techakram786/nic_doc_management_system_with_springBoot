@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Admin Panel</title>
+    <style>
+        body { font-family: sans-serif; margin: 2em; }
+        .container { max-width: 960px; margin: 0 auto; }
+        .back-link { display: inline-block; margin-bottom: 1em; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <a href="/" class="back-link">&larr; Back to Home</a>
+        <h1>Admin Panel</h1>
+        <p>Welcome, <span th:text="${session.user.username}">Admin</span>!</p>
+        <p>This is the protected admin area.</p>
+    </div>
+</body>
+</html>

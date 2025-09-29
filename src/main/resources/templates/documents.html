@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title th:text="${docType} + ' Documents'">Documents</title>
+    <style>
+        /* General Body Styles */
+        body { font-family: sans-serif; margin: 0; background-color: #f8f9fa; color: #333; }
+
+        /* Header Styles */
+        .header { background-color: #fff; padding: 10px 40px; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #ddd; }
+        .header .logo { display: flex; align-items: center; text-decoration: none; }
+        .header .logo img { height: 40px; margin-right: 10px; } 
+        .header .logo-text { font-size: 1.5em; font-weight: bold; color: #0056b3; }
+        .header .nav-links a { margin-left: 20px; text-decoration: none; color: #555; font-weight: bold; }
+
+        /* Main Container */
+        .container { max-width: 1200px; margin: 30px auto; padding: 20px; background-color: #fff; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); }
+        .back-link { display: inline-block; margin-bottom: 20px; color: #007bff; text-decoration: none; font-weight: bold; }
+        .back-link:hover { text-decoration: underline; }
+
+        /* Form and Table Styles */
+        .upload-form, .document-list { border: 1px solid #e9ecef; padding: 1.5em; margin-bottom: 2em; border-radius: 8px; }
+        h1, h2 { color: #0056b3; }
+        .form-group { margin-bottom: 1em; }
+        label { display: block; margin-bottom: .5em; font-weight: bold; }
+        input[type='text'], textarea { width: 100%; padding: .5em; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: .7em 1.5em; background-color: #007bff; color: white; border: none; border-radius: 5px; cursor: pointer; font-size: 1em; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+        .action-links a { margin-right: 10px; text-decoration: none; }
+        .action-links a:hover { text-decoration: underline; }
+        .message { padding: 1em; margin-bottom: 1em; border-radius: 5px; }
+        .link-button {
+            background: none;
+            border: none;
+            color: #dc3545; /* Red color for delete */
+            text-decoration: none;
+            cursor: pointer;
+            padding: 0;
+            font-size: inherit;
+        }
+        .link-button:hover { text-decoration: underline; }
+        .message.success { background-color: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .message.error { background-color: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+
+        /* Footer Styles */
+        .footer { background-color: #343a40; color: white; text-align: center; padding: 20px; margin-top: 40px; }
+    </style>
+</head>
+<body>
+
+    <header class="header">
+        <a th:href="@{/}" class="logo">
+             <img src="/images/niclogo.svg" alt="NIC Logo">
+             <span class="logo-text">NIC</span>
+        </a>
+        <nav class="nav-links">
+            <a th:href="@{/}">Home</a>
+        </nav>
+    </header>
+
+    <div class="container">
+        <a href="/" class="back-link">&larr; Back to Home</a>
+
+        <h1 th:text="${docType} + ' Documents'">Documents</h1>
+
+        <div class="upload-form">
+            <h2>Upload New Document</h2>
+
+            <!-- Message Area for Upload Feedback -->
+            <div th:if="${message}"
+                 th:text="${message}"
+                 th:classappend="${message.startsWith('Upload failed')} ? 'error' : 'success'"
+                 class="message">
+            </div>
+
+            <form id="uploadForm" method="post" th:action="@{/documents/upload}" enctype="multipart/form-data">
+                <input type="hidden" id="type" name="type" th:value="${docType}">
+
+                <div class="form-group">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" name="title" required>
+                </div>
+                <div class="form-group">
+                    <label for="description">Description</label>
+                    <textarea id="description" name="description" rows="3" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label for="file">Document</label>
+                    <input type="file" id="file" name="file" required>
+                </div>
+                <button type="submit">Upload</button>
+            </form>
+        </div>
+
+        <div class="document-list">
+            <h2>Uploaded Documents</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Description</th>
+                        <th>Filename</th>
+                        <th>Size (KB)</th>
+                        <th>Upload Date</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr th:if="${#lists.isEmpty(documents)}">
+                        <td colspan="6" style="text-align: center;">No documents found.</td>
+                    </tr>
+                    <tr th:each="doc : ${documents}">
+                        <td th:text="${doc.title}">Title</td>
+                        <td th:text="${doc.description}">Description</td>
+                        <td th:text="${doc.originalFileName}">Filename</td>
+                        <td th:text="${#numbers.formatDecimal(doc.size / 1024.0, 1, 2)}">Size</td>
+                        <td th:text="${#temporals.format(doc.uploadDate, 'yyyy-MM-dd HH:mm')}">Upload Date</td>
+                        <td class="action-links">
+                            <a th:href="@{/view/{fileName}(fileName=${doc.fileName})}" target="_blank">View</a>
+                            <form th:action="@{/documents/delete/{id}(id=${doc.id})}" method="post" style="display:inline; margin: 0 10px;">
+                                <input type="hidden" name="type" th:value="${docType}" />
+                                <button type="submit" class="link-button" onclick="return confirm('Are you sure you want to permanently delete this file?');">Delete</button>
+                            </form>
+                            <a th:href="@{/download/{fileName}(fileName=${doc.fileName})}">Download</a>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <footer class="footer">
+        <p>Welcome to NIC Management</p>
+    </footer>
+
+</body>
+</html>
