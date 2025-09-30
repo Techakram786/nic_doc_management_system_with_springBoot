@@ -25,17 +25,23 @@ public class DocumentService {
     public void saveDocument(MultipartFile file, String title, String description, DocumentType docType) {
         String fileName = fileStorageService.storeFile(file);
 
-        Document doc = new Document();
-        doc.setTitle(title);
-        doc.setDescription(description);
-        doc.setType(docType);
-        doc.setFileName(fileName);
-        doc.setOriginalFileName(Objects.requireNonNull(file.getOriginalFilename()));
-        doc.setSize(file.getSize());
-        doc.setContentType(file.getContentType());
-        doc.setUploadDate(LocalDateTime.now());
+        try {
+            Document doc = new Document();
+            doc.setTitle(title);
+            doc.setDescription(description);
+            doc.setType(docType);
+            doc.setFileName(fileName);
+            doc.setOriginalFileName(Objects.requireNonNull(file.getOriginalFilename()));
+            doc.setSize(file.getSize());
+            doc.setContentType(file.getContentType());
+            doc.setUploadDate(LocalDateTime.now());
 
-        documentRepository.save(doc);
+            documentRepository.save(doc);
+        } catch (Exception e) {
+            // If the database save fails, delete the orphaned file
+            fileStorageService.deleteFile(fileName);
+            throw new RuntimeException("Failed to save document metadata to the database.", e);
+        }
     }
 
     public List<Document> getDocumentsByType(DocumentType docType) {

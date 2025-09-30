@@ -1,6 +1,7 @@
 package com.nicdocumentmanagementsystem.service;
 
 import com.nicdocumentmanagementsystem.config.FileStorageProperties;
+import com.nicdocumentmanagementsystem.exception.FileAlreadyExistsException;
 import jakarta.annotation.PostConstruct;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -15,7 +16,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.util.Objects;
-import java.util.UUID;
 
 @Service
 public class FileStorageService {
@@ -38,15 +38,17 @@ public class FileStorageService {
 
     public String storeFile(MultipartFile file) {
         String originalFileName = StringUtils.cleanPath(Objects.requireNonNull(file.getOriginalFilename()));
-        String fileExtension = originalFileName.substring(originalFileName.lastIndexOf("."));
-        String newFileName = UUID.randomUUID().toString() + fileExtension;
 
         try {
-            Path targetLocation = this.fileStorageLocation.resolve(newFileName);
+            if (Files.exists(this.fileStorageLocation.resolve(originalFileName))) {
+                throw new FileAlreadyExistsException("File already exists: " + originalFileName);
+            }
+
+            Path targetLocation = this.fileStorageLocation.resolve(originalFileName);
             Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
-            return newFileName;
+            return originalFileName;
         } catch (IOException ex) {
-            throw new RuntimeException("Could not store file " + newFileName + ". Please try again!", ex);
+            throw new RuntimeException("Could not store file " + originalFileName + ". Please try again!", ex);
         }
     }
 
